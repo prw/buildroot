@@ -248,10 +248,10 @@ index 000000000..bc4857449
 +    };
 +};
 diff --git a/drivers/gpu/drm/mxsfb/mxsfb_crtc.c b/drivers/gpu/drm/mxsfb/mxsfb_crtc.c
-index b69ace8bf..5808c340e 100644
+index b69ace8bf..b0e6252be 100644
 --- a/drivers/gpu/drm/mxsfb/mxsfb_crtc.c
 +++ b/drivers/gpu/drm/mxsfb/mxsfb_crtc.c
-@@ -129,11 +129,20 @@ static void mxsfb_enable_controller(struct mxsfb_drm_private *mxsfb)
+@@ -129,11 +129,22 @@ static void mxsfb_enable_controller(struct mxsfb_drm_private *mxsfb)
  
  	/* If it was disabled, re-enable the mode again */
  	writel(CTRL_DOTCLK_MODE, mxsfb->base + LCDC_CTRL + REG_SET);
@@ -261,18 +261,20 @@ index b69ace8bf..5808c340e 100644
 +	writel(reg, mxsfb->base + LCDC_CTRL1);
 +	reg=0x000b0821;
 +	writel(reg, mxsfb->base + LCDC_CTRL);
-+	udelay(50);
  
++	/* Clear the FIFO like u-boot. First set then clear before RUN*/
 +	writel(CTRL1_FIFO_CLEAR, mxsfb->base + LCDC_CTRL1 + REG_SET);
++	udelay(10);
  	/* Enable the SYNC signals first, then the DMA engine */
  	reg = readl(mxsfb->base + LCDC_VDCTRL4);
  	reg |= VDCTRL4_SYNC_SIGNALS_ON;
  	writel(reg, mxsfb->base + LCDC_VDCTRL4);
++	/* Reset the FIFO CLEAR bit */
 +	writel(CTRL1_FIFO_CLEAR, mxsfb->base + LCDC_CTRL1 + REG_CLR);
  
  	writel(CTRL_RUN, mxsfb->base + LCDC_CTRL + REG_SET);
  }
-@@ -223,10 +232,8 @@ static void mxsfb_crtc_mode_set_nofb(struct mxsfb_drm_private *mxsfb)
+@@ -223,10 +234,8 @@ static void mxsfb_crtc_mode_set_nofb(struct mxsfb_drm_private *mxsfb)
  	err = mxsfb_reset_block(mxsfb->base);
  	if (err)
  		return;
